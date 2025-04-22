@@ -20,14 +20,14 @@ def analyze_attendance(data, mode="missing_weekdays"):
     weekends = ["FRI", "SAT"]
 
     if mode == "missing_weekdays":
-        return data[~data[weekdays].apply(lambda x: all(day.strip() != "" for day in x), axis=1)]
+        return data[~data[weekdays].apply(lambda x: all(str(day).strip() != "" for day in x), axis=1)]
     elif mode == "only_weekend":
         return data[
-            (data[weekdays].apply(lambda x: all(day.strip() == "" for day in x), axis=1)) &
-            (data[weekends].apply(lambda x: any(day.strip() != "" for day in x), axis=1))
+            (data[weekdays].apply(lambda x: all(str(day).strip() == "" for day in x), axis=1)) &
+            (data[weekends].apply(lambda x: any(str(day).strip() != "" for day in x), axis=1))
         ]
     elif mode == "full_weekdays":
-        return data[data[weekdays].apply(lambda x: all(day.strip() != "" for day in x), axis=1)]
+        return data[data[weekdays].apply(lambda x: all(str(day).strip() != "" for day in x), axis=1)]
 
 # 📌 البحث العادي
 query = st.text_input("🔍 أدخل اسم الموظف أو رقم الهوية")
