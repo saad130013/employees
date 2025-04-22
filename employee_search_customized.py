@@ -14,7 +14,7 @@ def load_data():
 
 df = load_data()
 
-# 🧠 الوظيفة الذكية لتحديد الغياب أو الدوام الكامل
+# 🧠 تحليلات حضور متنوعة
 def analyze_attendance(data, mode="missing_weekdays"):
     weekdays = ["SUN", "MON", "TUE", "WED", "THU"]
     weekends = ["FRI", "SAT"]
@@ -28,6 +28,8 @@ def analyze_attendance(data, mode="missing_weekdays"):
         ]
     elif mode == "full_weekdays":
         return data[data[weekdays].apply(lambda x: all(str(day).strip() != "" for day in x), axis=1)]
+    elif mode == "one_absent_weekday":
+        return data[data[weekdays].apply(lambda x: sum(str(day).strip() == "" for day in x) == 1, axis=1)]
 
 # 📌 البحث العادي
 query = st.text_input("🔍 أدخل اسم الموظف أو رقم الهوية")
@@ -83,7 +85,7 @@ with col1:
         st.download_button("📥 تحميل التقرير", data=out, file_name="missing_weekdays.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 with col2:
-    if st.button("📅 الموظفون الذين حضروا الجمعة أو السبت فقط"):
+    if st.button("📅 حضر الجمعة/السبت فقط"):
         weekend = analyze_attendance(df, mode="only_weekend")
         st.write(f"🔹 عدد الموظفين: {len(weekend)}")
         st.dataframe(weekend)
@@ -94,7 +96,7 @@ with col2:
         st.download_button("📥 تحميل التقرير", data=out, file_name="weekend_only.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 with col3:
-    if st.button("✅ الموظفون الذين حضروا الأحد إلى الخميس كامل"):
+    if st.button("✅ حضر كامل أيام الأحد إلى الخميس"):
         full_week = analyze_attendance(df, mode="full_weekdays")
         st.write(f"🟢 عدد الموظفين: {len(full_week)}")
         st.dataframe(full_week)
@@ -103,6 +105,17 @@ with col3:
             full_week.to_excel(writer, index=False, sheet_name="Full Weekdays")
         out.seek(0)
         st.download_button("📥 تحميل التقرير", data=out, file_name="full_weekdays.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+# تقرير خاص: غياب يوم واحد فقط
+st.markdown("### 📌 الموظفون الذين غابوا يوم واحد فقط من الأحد إلى الخميس")
+one_absent = analyze_attendance(df, mode="one_absent_weekday")
+st.write(f"🟡 عدد الموظفين: {len(one_absent)}")
+st.dataframe(one_absent)
+out = io.BytesIO()
+with pd.ExcelWriter(out, engine='openpyxl') as writer:
+    one_absent.to_excel(writer, index=False, sheet_name="One Day Absent")
+out.seek(0)
+st.download_button("📥 تحميل تقرير الغياب ليوم واحد", data=out, file_name="one_day_absent.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 # الشريط الجانبي
 with st.sidebar:
